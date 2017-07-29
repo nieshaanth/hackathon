@@ -1,0 +1,63 @@
+app.factory('AuthenticationService',
+    function($cookies, $http, $location) {
+        var commitId = "";
+        var service = {};
+        service.Login = function (commitId, password, callback) {                                                      
+            $http.post("http://localhost:51057/api/CSR/login", { commitId: commitId, password: password })
+            .then(function (response) {
+                //alert(response.status);
+                callback(response);
+            }).catch(function (response){
+                callback(response);
+            });
+        },
+        service.setCookieData= function(commitId) {
+            commitId = commitId;
+           
+            $cookies.put("commitId", commitId);
+            //alert($cookies.get("commitId") + " in setcookie");
+        },
+        service.getCookieData= function() {
+            commitId = $cookies.get("commitId");
+            return $cookies.get("commitId");
+        },
+        service.clearCookieData= function() {
+            commitId = "";
+            $cookies.remove("commitId");
+        };
+        return service;
+    });
+
+   
+    app.controller('LoginController', function ($scope, $window, $cookies, AuthenticationService) {
+        // reset login status
+        AuthenticationService.clearCookieData();
+        $scope.mock = "Hello Angular!";
+        
+        $scope.login = function (commitId, password) {
+            console.log("Inside login");
+
+            AuthenticationService.Login(commitId, password, function (response) {
+                console.log(response);
+                if (response.status != 201) {
+                    console.log("hello");
+                    $scope.message = "Failure";
+                }
+
+                else {
+                    //alert('Successful');
+                   
+                    AuthenticationService.setCookieData(commitId);
+                    console.log(commitId);
+                    console.log("commit2 " + commit2);
+                    console.log("in else");
+                    $window.location.href = "Home.html";
+                    var commit2 = AuthenticationService.getCookieData();
+                    //alert("Welcome " + AuthenticationService.getCookieData());
+                    $scope.value = AuthenticationService.getCookieData();
+                    console.log("after else");
+                    //$scope.endValue = 'Hi there.. this is the end!';
+                }
+            });
+        };
+

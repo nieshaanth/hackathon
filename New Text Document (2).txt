@@ -1,0 +1,138 @@
+Create database Prattle
+
+use Prattle
+----------------------------------------------------------------------------
+Create table Users
+(
+userId int identity(1000,1) primary key,
+name varchar(max),
+emailId varchar(max),
+logStatus varchar(10)
+)
+select * from users
+delete from Room where roomId=5003 
+select * from Room
+delete from Chat where fromUser=1001 
+ select * from Chat
+
+create procedure getUser
+@userId int
+as 
+begin 
+select * from users where userId=@userId
+end
+exec getUser 1000
+
+create procedure addUser
+@userName varchar(max),
+@emailId varchar(max),
+@logStatus varchar(10),
+@userId int out
+As
+Begin
+insert users(name,emailId,logStatus)values (@userName,@emailId,@logStatus)
+set @userId=@@IDENTITY
+select @@IDENTITY
+return @userId
+end
+
+alter procedure searchUser
+@searchText varchar(max)
+as
+begin
+select * from Users where name like '%' +@searchText +'%' or emailId like '%' +@searchText +'%'
+--select * from products where productname like '%" + prodname + "%' or categoryname like '%" + prodname + "%' ",
+
+end
+exec searchUser 'nis'
+select * from Users where name like '%ishe%' or emailId like '%ishe%'
+--------------------------------------------------------------------------
+sp_help users
+
+Create table Chat
+(
+roomId int foreign key references Room(roomId),
+fromUser int foreign key references Users(userId),
+toUser int foreign key references Users(userId),
+messageText varchar(max),
+sentTime datetime
+)
+
+
+sp_help chats
+
+alter procedure chats
+@roomId int,
+@fromUser int,
+@toUser int,
+@messageText varchar(max),
+@sentTime datetime
+As
+Begin
+insert Chat values (@roomId,@fromUser,@toUser,@messageText,@sentTime)
+end
+
+
+alter procedure getChat 
+@roomid int
+as 
+begin 
+select * from Chat where roomId=@roomid 
+end 
+
+
+drop table chat
+drop table room
+drop table users
+----------------------------------------------------------------------------
+
+Create table Room
+(
+roomId int identity(5000,1) primary key,
+user1 int foreign key references Users(userId), 
+user2 int foreign key references Users(userId),
+)
+sp_help newRoom
+alter procedure newRoom
+@user1 int,
+@user2 int,
+
+@roomId int out
+As
+Begin
+insert Room values(@user1,@user2)
+set @roomId=@@IDENTITY
+select @@IDENTITY
+return @roomId
+end
+
+create procedure getContacts
+@userId int
+as
+begin
+select * from Room where user1=@userId or user2=@userId
+end
+exec getContacts 1001
+
+
+alter procedure isRoom
+@user1 int,
+@user2 int
+as 
+begin
+declare @count int
+select @count=count(roomId) from Room where (user1=@user1 and user2=@user2) or (user1=@user2 and user2=@user1)
+if @count>0
+begin
+select roomId from Room where (user1=@user1 and user2=@user2) or (user1=@user2 and user2=@user1)
+end
+else
+begin
+select 0
+end
+end
+
+sp_help Room
+select * from Room
+select RoomId from Room where (user1=1001 and user2=1002) or (user1=1002 and user2=1001)
+isRoom 1001,1002
